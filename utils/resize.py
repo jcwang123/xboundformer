@@ -72,7 +72,7 @@ def process_ph2():
         label = plt.imread(label_path)
         label = label[:, :, 0]
 
-        dim = (512, 512)
+        dim = (352, 352)
         image_new = cv2.resize(image, dim, interpolation=cv2.INTER_AREA)
         label_new = cv2.resize(label, dim, interpolation=cv2.INTER_AREA)
 
