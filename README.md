@@ -4,7 +4,7 @@
 
 This is an official release of the paper **Cross-scale Boundary-aware Transformer for Skin Lesion Segmentation**. 
 
-<div align="center" border=> <img src=Figure_Framework_00.jpg width="400" > </div>
+<div align="center" border=> <img src=frame.jpg width="400" > </div>
 
 ## News
 
