@@ -1,0 +1,7 @@
+*.jpg
+logs/
+results/
+exps/
+*.pth
+scripts/
+*.pyc
