@@ -4,3 +4,4 @@ exps/
 *.pth
 scripts/
 *.pyc
+figures/

@@ -51,7 +51,8 @@ class myDataset(data.Dataset):
                 f'{root_dir}/Validation/Image/{_id}' for _id in indexes
             ]
             self.label_paths = [
-                f'{root_dir}/Validation/Label/{_id}' for _id in indexes
+                f'{root_dir}/Validation/Label/{_id[:-4]}_label.npy'
+                for _id in indexes
             ]
         else:
             indexes = os.listdir(root_dir + '/Test/Image/')
@@ -59,7 +60,8 @@ class myDataset(data.Dataset):
                 f'{root_dir}/Test/Image/{_id}' for _id in indexes
             ]
             self.label_paths = [
-                f'{root_dir}/Test/Label/{_id}' for _id in indexes
+                f'{root_dir}/Test/Label/{_id[:-4]}_label.npy'
+                for _id in indexes
             ]
 
         print('Loaded {} frames'.format(len(self.image_paths)))

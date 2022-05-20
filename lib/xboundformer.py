@@ -3,7 +3,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from lib.modules import xboundlearner, xboundlearnerv2
+from lib.modules import xboundlearner, xboundlearnerv2, _simple_learner
 from lib.vision_transformers import in_scale_transformer
 
 from lib.pvtv2 import pvt_v2_b2  #
@@ -23,7 +23,8 @@ def _segm_pvtv2(num_classes, im_num, ex_num, xbound, trainsize):
         model_dict.update(state_dict)
         backbone.load_state_dict(model_dict)
     classifier = _simple_classifier(num_classes)
-    model = _SimpleSegmentationModel(backbone, classifier, im_num, ex_num)
+    model = _SimpleSegmentationModel(backbone, classifier, im_num, ex_num,
+                                     xbound)
     return model
 
 
@@ -61,13 +62,14 @@ class _simple_classifier(nn.Module):
 
 class _SimpleSegmentationModel(nn.Module):
     # general segmentation model
-    def __init__(self, backbone, classifier, im_num, ex_num):
+    def __init__(self, backbone, classifier, im_num, ex_num, xbound):
         super(_SimpleSegmentationModel, self).__init__()
         self.backbone = backbone
         self.classifier = classifier
         self.bat_low = _bound_learner(hidden_features=128,
                                       im_num=im_num,
-                                      ex_num=ex_num)
+                                      ex_num=ex_num,
+                                      xbound=xbound)
 
     def forward(self, x):
         input_shape = x.shape[-2:]
@@ -92,9 +94,16 @@ class _SimpleSegmentationModel(nn.Module):
 
 
 class _bound_learner(nn.Module):
-    def __init__(self, point_pred=1, hidden_features=128, im_num=2, ex_num=2):
+    def __init__(self,
+                 point_pred=1,
+                 hidden_features=128,
+                 im_num=2,
+                 ex_num=2,
+                 xbound=True):
 
         super().__init__()
+        self.im_num = im_num
+        self.ex_num = ex_num
 
         self.point_pred = point_pred
 
@@ -117,32 +126,39 @@ class _bound_learner(nn.Module):
                                                padding=(0, 0),
                                                bias=True)
         normalize_before = True
-        self.im_ex_boud1 = in_scale_transformer(
-            point_pred_layers=1,
-            num_encoder_layers=im_num,
-            num_decoder_layers=ex_num,
-            d_model=hidden_features,
-            nhead=8,
-            normalize_before=normalize_before)
-        self.im_ex_boud2 = in_scale_transformer(
-            point_pred_layers=1,
-            num_encoder_layers=im_num,
-            num_decoder_layers=ex_num,
-            d_model=hidden_features,
-            nhead=8,
-            normalize_before=normalize_before)
-        self.im_ex_boud3 = in_scale_transformer(
-            point_pred_layers=1,
-            num_encoder_layers=im_num,
-            num_decoder_layers=ex_num,
-            d_model=hidden_features,
-            nhead=8,
-            normalize_before=normalize_before)
-        # self.cross_attention_3_1 = xboundlearner(hidden_features, 8)
-        # self.cross_attention_3_2 = xboundlearner(hidden_features, 8)
 
-        self.cross_attention_3_1 = xboundlearnerv2(hidden_features, 8)
-        self.cross_attention_3_2 = xboundlearnerv2(hidden_features, 8)
+        if im_num + ex_num > 0:
+            self.im_ex_boud1 = in_scale_transformer(
+                point_pred_layers=1,
+                num_encoder_layers=im_num,
+                num_decoder_layers=ex_num,
+                d_model=hidden_features,
+                nhead=8,
+                normalize_before=normalize_before)
+            self.im_ex_boud2 = in_scale_transformer(
+                point_pred_layers=1,
+                num_encoder_layers=im_num,
+                num_decoder_layers=ex_num,
+                d_model=hidden_features,
+                nhead=8,
+                normalize_before=normalize_before)
+            self.im_ex_boud3 = in_scale_transformer(
+                point_pred_layers=1,
+                num_encoder_layers=im_num,
+                num_decoder_layers=ex_num,
+                d_model=hidden_features,
+                nhead=8,
+                normalize_before=normalize_before)
+            # self.cross_attention_3_1 = xboundlearner(hidden_features, 8)
+            # self.cross_attention_3_2 = xboundlearner(hidden_features, 8)
+
+        self.xbound = xbound
+        if xbound:
+            self.cross_attention_3_1 = xboundlearnerv2(hidden_features, 8)
+            self.cross_attention_3_2 = xboundlearnerv2(hidden_features, 8)
+        else:
+            self.cross_attention_3_1 = _simple_learner(hidden_features)
+            self.cross_attention_3_2 = _simple_learner(hidden_features)
 
         self.trans_out_conv = nn.Conv2d(hidden_features * 2, 512, 1, 1)  #
 
@@ -157,27 +173,40 @@ class _bound_learner(nn.Module):
         features_3 = self.convolution_mapping_3(features_3)
 
         # in-scale attention
-        latent_tensor_1, features_encoded_1, point_maps_1 = self.im_ex_boud1(
-            features_1)
+        if self.im_num + self.ex_num > 0:
+            latent_tensor_1, features_encoded_1, point_maps_1 = self.im_ex_boud1(
+                features_1)
 
-        latent_tensor_2, features_encoded_2, point_maps_2 = self.im_ex_boud2(
-            features_2)
+            latent_tensor_2, features_encoded_2, point_maps_2 = self.im_ex_boud2(
+                features_2)
 
-        latent_tensor_3, features_encoded_3, point_maps_3 = self.im_ex_boud3(
-            features_3)
+            latent_tensor_3, features_encoded_3, point_maps_3 = self.im_ex_boud3(
+                features_3)
 
-        # cross-scale attention6
-        latent_tensor_1 = latent_tensor_1.permute(2, 0, 1)
-        latent_tensor_2 = latent_tensor_2.permute(2, 0, 1)
-        latent_tensor_3 = latent_tensor_3.permute(2, 0, 1)
+            # cross-scale attention6
+            if self.ex_num > 0:
+                latent_tensor_1 = latent_tensor_1.permute(2, 0, 1)
+                latent_tensor_2 = latent_tensor_2.permute(2, 0, 1)
+                latent_tensor_3 = latent_tensor_3.permute(2, 0, 1)
+
+        else:
+            features_encoded_1 = features_1
+            features_encoded_2 = features_2
+            features_encoded_3 = features_3
 
         # ''' point map Upsample '''
-        features_encoded_2_2 = self.cross_attention_3_2(
-            features_encoded_2, features_encoded_3, latent_tensor_2,
-            latent_tensor_3)
-        features_encoded_1_2 = self.cross_attention_3_1(
-            features_encoded_1, features_encoded_2_2, latent_tensor_1,
-            latent_tensor_2)
+        if self.xbound:
+            features_encoded_2_2 = self.cross_attention_3_2(
+                features_encoded_2, features_encoded_3, latent_tensor_2,
+                latent_tensor_3)
+            features_encoded_1_2 = self.cross_attention_3_1(
+                features_encoded_1, features_encoded_2_2, latent_tensor_1,
+                latent_tensor_2)
+        else:
+            features_encoded_2_2 = self.cross_attention_3_2(
+                features_encoded_2, features_encoded_3)
+            features_encoded_1_2 = self.cross_attention_3_1(
+                features_encoded_1, features_encoded_2_2)
 
         # trans_feature_maps = self.trans_out_conv(
         #     torch.cat([features_encoded_3_1, features_encoded_3_2], dim=1))
@@ -191,7 +220,10 @@ class _bound_learner(nn.Module):
             features_encoded_3
         ]
 
-        return features_stage2, point_maps_1, point_maps_2, point_maps_3  #
+        if self.im_num + self.ex_num > 0:
+            return features_stage2, point_maps_1, point_maps_2, point_maps_3  #
+        else:
+            return features_stage2, None, None, None  #
 
 
 if __name__ == '__main__':

@@ -80,6 +80,7 @@ class BoundaryAwareTransformer(nn.Module):
                  BAG_type='2D',
                  Atrous=False):
         super().__init__()
+        self.num_decoder_layers = num_decoder_layers
 
         encoder_layer = BoundaryAwareTransformerEncoderLayer(
             d_model, nhead, BAG_type, Atrous, dim_feedforward, dropout,
@@ -89,15 +90,17 @@ class BoundaryAwareTransformer(nn.Module):
                                                        encoder_layer,
                                                        num_encoder_layers,
                                                        encoder_norm)
-        decoder_layer = TransformerDecoderLayer(d_model, nhead,
-                                                dim_feedforward, dropout,
-                                                activation, normalize_before)
-        decoder_norm = nn.LayerNorm(d_model)
-        self.decoder = TransformerDecoder(
-            decoder_layer,
-            num_decoder_layers,
-            decoder_norm,
-            return_intermediate=return_intermediate_dec)
+        if num_decoder_layers > 0:
+            decoder_layer = TransformerDecoderLayer(d_model, nhead,
+                                                    dim_feedforward, dropout,
+                                                    activation,
+                                                    normalize_before)
+            decoder_norm = nn.LayerNorm(d_model)
+            self.decoder = TransformerDecoder(
+                decoder_layer,
+                num_decoder_layers,
+                decoder_norm,
+                return_intermediate=return_intermediate_dec)
         self._reset_parameters()
 
         self.d_model = d_model
@@ -122,14 +125,19 @@ class BoundaryAwareTransformer(nn.Module):
                                        pos=pos_embed,
                                        height=h,
                                        width=w)
-
-        hs = self.decoder(tgt,
-                          memory,
-                          memory_key_padding_mask=mask,
-                          pos=pos_embed,
-                          query_pos=query_embed)
-        return hs.transpose(1, 2), memory.permute(1, 2, 0).view(bs, c, h,
-                                                                w), weights
+        if self.num_decoder_layers > 0:
+            hs = self.decoder(tgt,
+                              memory,
+                              memory_key_padding_mask=mask,
+                              pos=pos_embed,
+                              query_pos=query_embed)
+            return hs.transpose(1, 2), memory.permute(1, 2,
+                                                      0).view(bs, c, h,
+                                                              w), weights
+        else:
+            return tgt.transpose(1, 2), memory.permute(1, 2,
+                                                       0).view(bs, c, h,
+                                                               w), weights
 
 
 class TransformerEncoder(nn.Module):

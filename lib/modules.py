@@ -3,6 +3,20 @@ import torch.nn as nn
 import torch
 
 
+class _simple_learner(nn.Module):
+    def __init__(self, d_model):
+        super().__init__()
+        self.mlp = nn.Conv2d(d_model * 2, d_model, 1, 1)
+
+    def forward(self, f_low, f_high):
+        low_size = f_low.shape[2:]
+        f2_high = F.interpolate(f_high, size=low_size)
+
+        f2_low = torch.cat([f_low, f2_high], dim=1)
+        f2_low = self.mlp(f2_low)
+        return f2_low
+
+
 class xboundlearnerv2(nn.Module):
     def __init__(self, d_model, nhead, dim_feedforward=512, dropout=0.0):
         super().__init__()
