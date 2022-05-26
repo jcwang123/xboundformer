@@ -45,6 +45,11 @@ class myDataset(data.Dataset):
                 f'{root_dir}/Train/Label/{_id[:-4]}_label.npy'
                 for _id in indexes
             ]
+            self.point_paths = [
+                f'{root_dir}/Train/Point/{_id[:-4]}_label.npy'
+                for _id in indexes
+            ]
+
         elif split == 'valid':
             indexes = os.listdir(root_dir + '/Validation/Image/')
             self.image_paths = [
@@ -92,6 +97,14 @@ class myDataset(data.Dataset):
         label_data = label_data / 255. > 0.5
         image_data = np.array(
             cv2.resize(image_data, (self.size, self.size), cv2.INTER_LINEAR))
+        if self.split == 'train':
+            filter_point_data = (np.load(self.point_paths[index]) >
+                                 0.7).astype('uint8')
+            filter_point_data = np.array(
+                cv2.resize(filter_point_data, (self.size, self.size),
+                           cv2.INTER_NEAREST))
+        else:
+            filter_point_data = point_data.copy()
 
         # image_data = np.load(self.image_paths[index])
         # label_data = np.load(self.label_paths[index]) > 0.5
@@ -103,7 +116,7 @@ class myDataset(data.Dataset):
         if self.aug and self.split == 'train':
             mask = np.concatenate([
                 label_data[..., np.newaxis].astype('uint8'),
-                point_data[..., np.newaxis]
+                point_data[..., np.newaxis], filter_point_data[..., np.newaxis]
             ],
                                   axis=-1)
             #             print(mask.shape)
@@ -111,16 +124,17 @@ class myDataset(data.Dataset):
             image_data, mask_aug = tsf['image'], tsf['mask']
             label_data = mask_aug[:, :, 0]
             point_data = mask_aug[:, :, 1]
+            filter_point_data = mask_aug[:, :, 2]
 
         image_data = norm01(image_data)
         label_data = np.expand_dims(label_data, 0)
         point_data = np.expand_dims(point_data, 0)
-        # point_All_data = np.expand_dims(point_All_data, 0)  #
+        filter_point_data = np.expand_dims(filter_point_data, 0)  #
 
         image_data = torch.from_numpy(image_data).float()
         label_data = torch.from_numpy(label_data).float()
         point_data = torch.from_numpy(point_data).float()
-        # point_All_data = torch.from_numpy(point_All_data).float()  #
+        filter_point_data = torch.from_numpy(filter_point_data).float()  #
 
         image_data = image_data.permute(2, 0, 1)
         return {
@@ -130,7 +144,7 @@ class myDataset(data.Dataset):
             'image': image_data,
             'label': label_data,
             'point': point_data,
-            'point_All': label_data
+            'filter_point_data': filter_point_data
         }
 
     def __len__(self):
@@ -151,8 +165,9 @@ if __name__ == '__main__':
     for d in dataset:
         print(d['image'].shape, d['image'].max())
         print(d['point'].shape, d['point'].max())
+        print(d['filter_point_data'].shape, d['filter_point_data'].max())
         image = d['image'].permute(1, 2, 0).cpu()
         point = d['point'][0].cpu()
-        plt.imshow(point)
+        filter_point_data = d['filter_point_data'][0].cpu()
+        plt.imshow(filter_point_data)
         plt.show()
-        break
