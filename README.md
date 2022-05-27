@@ -1,20 +1,20 @@
-# Cross-scale Boundary-aware Transformer for Skin Lesion Segmentation
+# XBound-Former: Toward Cross-scale Boundary Modeling in Transformers
 
 ## Introduction
 
-This is an official release of the paper **Cross-scale Boundary-aware Transformer for Skin Lesion Segmentation**. 
+This is an official release of the paper **XBound-Former: Toward Cross-scale Boundary Modeling in Transformers**, including the network implementation and the training scripts.
 
 <div align="center" border=> <img src=frame.jpg width="700" > </div>
 
 ## News
-
+- **[5/27 2022] We have released the training scripts.**
 - **[5/19 2022] We have created this repo.**
 
 ## Code List
 
 - [x] Network
 - [x] Pre-processing
-- [ ] Training Codes
+- [x] Training Codes
 - [ ] Pretrained Weights
 
 For more details or any questions, please feel easy to contact us by email (jiachengw@stu.xmu.edu.cn).
@@ -34,24 +34,34 @@ Please run:
 $ python utils/resize.py
 ```
 
-You need to change the **File Path** to your own.
+You need to change the **File Path** to your own and select the correct function.
 
 ### Training 
 
+Please run:
+
+```bash
+$ python src/train.py
+```
+You need to change the **File Path** to your own and select the correct function.
+
 ### Testing
 
-Download the pretrained weight for PH2 dataset from [Google Drive](https://drive.google.com/file/d/1-eMHYX1fr-QvI3n50S0xqWcxc3FGsMgE/view?usp=sharing).
+Download the pretrained weight for ISCI-2016&$ph^2$ dataset from [Google Drive](https://drive.google.com/file/d/1-eMHYX1fr-QvI3n50S0xqWcxc3FGsMgE/view?usp=sharing) and move to the logger dir.
 
 Then, please run:
 
 ```bash
+$ python src/test.py
 ```
 
 ### Result
+The ISIC-2016&$ph^2$ dataset:
+<div align="center" border=> <img src=isic2016.png width="700" > </div>
 
 ## Citation
 
-If you find BAT useful in your research, please consider citing:
+If you find XBound-Former useful in your research, please consider citing:
 ```
 ```
 and the prior work, BAT, as:
