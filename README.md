@@ -63,6 +63,20 @@ The ISIC-2016&$ph^2$ dataset:
 
 If you find XBound-Former useful in your research, please consider citing:
 ```
+@ARTICLE{2022arXiv220600806W,
+       author = {{Wang}, Jiacheng and {Chen}, Fei and {Ma}, Yuxi and {Wang}, Liansheng and {Fei}, Zhaodong and {Shuai}, Jianwei and {Tang}, Xiangdong and {Zhou}, Qichao and {Qin}, Jing},
+        title = "{XBound-Former: Toward Cross-scale Boundary Modeling in Transformers}",
+      journal = {arXiv e-prints},
+         year = 2022,
+        month = jun,
+          eid = {arXiv:2206.00806},
+        pages = {arXiv:2206.00806},
+archivePrefix = {arXiv},
+       eprint = {2206.00806},
+ primaryClass = {cs.CV},
+}
+
+
 ```
 and the prior work, BAT, as:
 ```
