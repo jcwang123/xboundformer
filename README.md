@@ -3,6 +3,7 @@
 ## Introduction
 
 This is an official release of the paper **XBound-Former: Toward Cross-scale Boundary Modeling in Transformers**, including the network implementation and the training scripts.
+[Arxiv](https://arxiv.org/abs/2206.00806)_
 
 <div align="center" border=> <img src=frame.jpg width="700" > </div>
 
