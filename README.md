@@ -19,7 +19,6 @@ This is an official release of the paper **XBound-Former: Toward Cross-scale Bou
 
 For more details or any questions, please feel easy to contact us by email (jiachengw@stu.xmu.edu.cn).
 
-
 ## Usage
 
 ### Dataset
