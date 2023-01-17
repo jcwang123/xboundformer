@@ -4,9 +4,15 @@
 
 This is an official release of the paper **XBound-Former: Toward Cross-scale Boundary Modeling in Transformers**, including the network implementation and the training scripts.
 
+> [**XBound-Former: Toward Cross-scale Boundary Modeling in Transformers**]<br/>
+> **Jiacheng Wang**, Fei Chen, Yuxi Ma, Liansheng Wang, Zhaodong Fei, Jianwei Shuai, Xiangdong Tang, Qichao Zhou, Jing Qin <br/>
+> In: Transactions on Medical Imaging (TMI), 2023  <br/>
+> [[arXiv](https://arxiv.org/abs/2206.00806)][[Bibetex](https://github.com/jcwang123、xboundformer#Citation)]
+
 <div align="center" border=> <img src=frame.jpg width="700" > </div>
 
 ## News
+- **[1/11 2022] This paper has been accepted to TMI.**
 - **[5/27 2022] We have released the training scripts.**
 - **[5/19 2022] We have created this repo.**
 
@@ -62,6 +68,13 @@ The ISIC-2016&$ph^2$ dataset:
 
 If you find XBound-Former useful in your research, please consider citing:
 ```
+@article{wang2023xbound,
+  title={XBound-Former: Toward Cross-scale Boundary Modeling in Transformers},
+  author={Wang, Jiacheng and Chen, Fei and Ma, Yuxi and Wang, Liansheng and Fei, Zhaodong and Shuai, Jianwei and Tang, Xiangdong and Zhou, Qichao and Qin, Jing},
+  journal={IEEE Transactions on Medical Imaging},
+  year={2023},
+  publisher={IEEE}
+}
 ```
 and the prior work, BAT, as:
 ```

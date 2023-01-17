@@ -10,7 +10,10 @@ from torchvision import transforms
 import torch.utils.data as data
 import torch.nn.functional as F
 import cv2
+import sys
 
+sys.path.insert(0, os.path.dirname(__file__) + '/../')
+# from utils.polar_transformations import centroid, to_polar
 import albumentations as A
 from sklearn.model_selection import KFold
 
@@ -24,9 +27,10 @@ seperable_indexes = json.load(open('utils/data_split.json', 'r'))
 
 # cross validation
 class myDataset(data.Dataset):
-    def __init__(self, fold, split, size=352, aug=False):
+    def __init__(self, fold, split, size=352, aug=False, polar=False):
         super(myDataset, self).__init__()
         self.split = split
+        self.polar = polar
 
         # load images, label, point
         self.image_paths = []
@@ -36,6 +40,7 @@ class myDataset(data.Dataset):
 
         indexes = os.listdir(
             '/raid/wjc/data/skin_lesion/isic2018_jpg_smooth/Image')
+
         valid_indexes = [
             'ISIC_' + i + '.jpg' for i in seperable_indexes[str(fold)]
         ]
@@ -48,21 +53,36 @@ class myDataset(data.Dataset):
                                                     len(valid_indexes)))
 
         root_dir = '/raid/wjc/data/skin_lesion/isic2018_jpg_smooth'
-
-        if split == 'train':
-            self.image_paths = [
-                f'{root_dir}/Image/{_id}' for _id in train_indexes
-            ]
-            self.label_paths = [
-                f'{root_dir}/Label/{_id}' for _id in train_indexes
-            ]
-        elif split == 'valid':
-            self.image_paths = [
-                f'{root_dir}/Image/{_id}' for _id in valid_indexes
-            ]
-            self.label_paths = [
-                f'{root_dir}/Label/{_id}' for _id in valid_indexes
-            ]
+        if self.polar:
+            if split == 'train':
+                self.image_paths = [
+                    f'{root_dir}/PolarImage/{_id}' for _id in train_indexes
+                ]
+                self.label_paths = [
+                    f'{root_dir}/PolarLabel/{_id}' for _id in train_indexes
+                ]
+            elif split == 'valid':
+                self.image_paths = [
+                    f'{root_dir}/PolarImage/{_id}' for _id in valid_indexes
+                ]
+                self.label_paths = [
+                    f'{root_dir}/PolarLabel/{_id}' for _id in valid_indexes
+                ]
+        else:
+            if split == 'train':
+                self.image_paths = [
+                    f'{root_dir}/Image/{_id}' for _id in train_indexes
+                ]
+                self.label_paths = [
+                    f'{root_dir}/Label/{_id}' for _id in train_indexes
+                ]
+            elif split == 'valid':
+                self.image_paths = [
+                    f'{root_dir}/Image/{_id}' for _id in valid_indexes
+                ]
+                self.label_paths = [
+                    f'{root_dir}/Label/{_id}' for _id in valid_indexes
+                ]
 
         print('Loaded {} frames'.format(len(self.image_paths)))
         self.num_samples = len(self.image_paths)
@@ -111,6 +131,7 @@ class myDataset(data.Dataset):
             point_data = mask_aug[:, :, 1]
 
         image_data = norm01(image_data)
+
         label_data = np.expand_dims(label_data, 0)
         point_data = np.expand_dims(point_data, 0)
         # point_All_data = np.expand_dims(point_All_data, 0)  #
@@ -137,20 +158,29 @@ class myDataset(data.Dataset):
 
 if __name__ == '__main__':
     from tqdm import tqdm
-    dataset = myDataset(fold='0', split='train', aug=True)
-
-    train_loader = torch.utils.data.DataLoader(dataset,
-                                               batch_size=8,
-                                               shuffle=False,
-                                               num_workers=2,
-                                               pin_memory=True,
-                                               drop_last=True)
-    import matplotlib.pyplot as plt
-    for d in dataset:
-        print(d['image'].shape, d['image'].max())
-        print(d['point'].shape, d['point'].max())
-        image = d['image'].permute(1, 2, 0).cpu()
-        point = d['point'][0].cpu()
-        plt.imshow(point)
-        plt.show()
-        break
+    import sys
+    dataset = myDataset(fold='0', split='valid', aug=False, polar=False)
+    print(dataset.image_paths[:5])
+    print(seperable_indexes['0'][:5])
+    # for d in dataset:
+    #     print(d)
+    # train_loader = torch.utils.data.DataLoader(dataset,
+    #                                            batch_size=8,
+    #                                            shuffle=False,
+    #                                            num_workers=2,
+    #                                            pin_memory=True,
+    #                                            drop_last=True)
+    # import matplotlib.pyplot as plt
+    # for d in dataset:
+    #     print(d['image'].shape, d['image'].max())
+    #     print(d['point'].shape, d['point'].max())
+    #     image = d['image'].permute(1, 2, 0).cpu()
+    #     label = d['label'].permute(1, 2, 0).cpu()
+    #     point = d['point'][0].cpu()
+    #     plt.figure()
+    #     plt.imshow(image)
+    #     plt.show()
+    #     plt.figure()
+    #     plt.imshow(label)
+    #     plt.show()
+    #     break

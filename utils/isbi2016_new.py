@@ -13,6 +13,7 @@ import cv2
 
 import albumentations as A
 from sklearn.model_selection import KFold
+from .polar_transformations import centroid, to_polar
 
 
 def norm01(x):
@@ -24,8 +25,9 @@ seperable_indexes = json.load(open('utils/data_split.json', 'r'))
 
 # cross validation
 class myDataset(data.Dataset):
-    def __init__(self, split, size=352, aug=False):
+    def __init__(self, split, size=352, aug=False, polar=False):
         super(myDataset, self).__init__()
+        self.polar = polar
         self.split = split
 
         # load images, label, point
@@ -127,6 +129,12 @@ class myDataset(data.Dataset):
             filter_point_data = mask_aug[:, :, 2]
 
         image_data = norm01(image_data)
+
+        if self.polar:
+            center = centroid(image_data)
+            image_data = to_polar(image_data, center)
+            label_data = to_polar(label_data, center) > 0.5
+
         label_data = np.expand_dims(label_data, 0)
         point_data = np.expand_dims(point_data, 0)
         filter_point_data = np.expand_dims(filter_point_data, 0)  #

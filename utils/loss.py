@@ -16,8 +16,9 @@ def structure_loss(pred, mask):
     return (wbce + wiou).mean()
 
 
-def dice_loss(pred, mask):
-    pred = torch.sigmoid(pred)
+def dice_loss(pred, mask, act=False):
+    if not act:
+        pred = torch.sigmoid(pred)
     inter = (pred * mask).sum(dim=(2, 3))
     union = (pred + mask).sum(dim=(2, 3))
     wiou = 1 - (inter + 1) / (union - inter + 1)
