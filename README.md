@@ -8,6 +8,7 @@ This is an official release of the paper **XBound-Former: Toward Cross-scale Bou
 > **Jiacheng Wang**, Fei Chen, Yuxi Ma, Liansheng Wang, Zhaodong Fei, Jianwei Shuai, Xiangdong Tang, Qichao Zhou, Jing Qin <br/>
 > In: Transactions on Medical Imaging (TMI), 2023  <br/>
 > [[arXiv](https://arxiv.org/abs/2206.00806)][[Bibetex](https://github.com/jcwang123、xboundformer#Citation)]
+[Arxiv](https://arxiv.org/abs/2206.00806)
 
 <div align="center" border=> <img src=frame.jpg width="700" > </div>
 
@@ -75,6 +76,20 @@ If you find XBound-Former useful in your research, please consider citing:
   year={2023},
   publisher={IEEE}
 }
+@ARTICLE{2022arXiv220600806W,
+       author = {{Wang}, Jiacheng and {Chen}, Fei and {Ma}, Yuxi and {Wang}, Liansheng and {Fei}, Zhaodong and {Shuai}, Jianwei and {Tang}, Xiangdong and {Zhou}, Qichao and {Qin}, Jing},
+        title = "{XBound-Former: Toward Cross-scale Boundary Modeling in Transformers}",
+      journal = {arXiv e-prints},
+         year = 2022,
+        month = jun,
+          eid = {arXiv:2206.00806},
+        pages = {arXiv:2206.00806},
+archivePrefix = {arXiv},
+       eprint = {2206.00806},
+ primaryClass = {cs.CV},
+}
+
+
 ```
 and the prior work, BAT, as:
 ```
